@@ -13,6 +13,8 @@ public class AppRunner {
 
     private static boolean isExit = false;
 
+    private static final Scanner scanner = new Scanner(System.in);
+
     private AppRunner() {
         products.addAll(new Product[]{
                 new Water(ActionLetter.B, 20),
@@ -22,7 +24,22 @@ public class AppRunner {
                 new Mars(ActionLetter.F, 80),
                 new Pistachios(ActionLetter.G, 130)
         });
-        moneyAcceptor = new CoinAcceptor(0);
+
+        System.out.println("Выберите способ оплаты:");
+        System.out.println("1 - Наличными");
+        System.out.println("2 - Картой");
+        String choicePaymentMethod = scanner.nextLine();
+
+        if ("1".equals(choicePaymentMethod)) {
+            this.moneyAcceptor = new BanknoteAcceptor();
+            System.out.println("Выбран метод оплаты: Наличные");
+        } else if ("2".equals(choicePaymentMethod)) {
+            this.moneyAcceptor = new CardAcceptor();
+            System.out.println("Выбран метод оплаты: Карта");
+        } else {
+            System.out.println("Неверный ввод. По умолчанию используется метод оплаты: Наличные");
+            this.moneyAcceptor = new BanknoteAcceptor();
+        }
     }
 
     public static void run() {
@@ -58,26 +75,29 @@ public class AppRunner {
         print(" a - Пополнить баланс");
         showActions(products);
         print(" h - Выйти");
-        String action = fromConsole().substring(0, 1);
+        String action = fromConsole();
+
+        if ("h".equalsIgnoreCase(action)) {
+            isExit = true;
+            return;
+        }
+
         if ("a".equalsIgnoreCase(action)) {
             moneyAcceptor.acceptMoney();
             return;
         }
+
+
         try {
             for (int i = 0; i < products.size(); i++) {
                 if (products.get(i).getActionLetter().equals(ActionLetter.valueOf(action.toUpperCase()))) {
                     moneyAcceptor.deductAmount(products.get(i).getPrice());
                     print("Вы купили " + products.get(i).getName());
-                    break;
+                    return;
                 }
             }
         } catch (IllegalArgumentException e) {
-            if ("h".equalsIgnoreCase(action)) {
-                isExit = true;
-            } else {
                 print("Недопустимая буква. Попрбуйте еще раз.");
-                chooseAction(products);
-            }
         }
     }
 
